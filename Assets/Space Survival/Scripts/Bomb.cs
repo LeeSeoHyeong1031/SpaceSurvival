@@ -1,21 +1,16 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class Bomb : MonoBehaviour, IItem
 {
-    public void Use()
-    {
-        List<Enemy> list = GameManager.Instance.enemies;
-        for (int i = 0; i < list.Count; i++)
-        {
-            Enemy enemy = list[0]; //0번째 적 할당
-            GameManager.Instance.enemies.RemoveAt(0); //0번째 적을 리스트에서 제거
-            GameManager.Instance.player.enemyKills++; //킬수 누적
-            Destroy(enemy.gameObject); //해당 오브젝트 파괴
-            //List특징상 0번째를 지우면 앞당겨 지니까 매개변수가 계속 0임.
-        }
-        Destroy(gameObject);
-    }
+	public void Use()
+	{
+		//Die에서 Remove땜에 앞으로 모두 땅겨져서 어떤 오브젝트는 사라지고 어떤거는 남는 현상 발생
+		//그래서 리스트 맨 끝부터 삭제. <--- 뒤에서 당져질 일이 없음.
+		for (int i = GameManager.Instance.enemies.Count - 1; i >= 0; i--)
+		{
+			GameManager.Instance.enemies[i].Die();
+		}
+		Destroy(gameObject); // 폭탄 오브젝트 파괴
+	}
 }
