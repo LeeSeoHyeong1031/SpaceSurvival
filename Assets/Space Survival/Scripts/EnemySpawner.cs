@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyGenerator : MonoBehaviour
+public class EnemySpawner : MonoBehaviour
 {
     public Transform[] spawnPoints = null; //스폰할 위치의 Transform컴포넌트 배열
     public GameObject enemyPrefab; //적 프리팹
     [SerializeField]
-    private float spawnInterval = 0.5f; //스폰 간격
+    private float spawnInterval = 1f; //스폰 간격
     Coroutine enemySpawn; //적소환 코루틴을 담을 객체
 
     private void Start()
@@ -17,7 +17,7 @@ public class EnemyGenerator : MonoBehaviour
     private void Update()
     {
         //플레이어가 죽었다면 적 소환 멈추기
-        if (Player.dead == true)
+        if (GameManager.Instance.player.dead == true)
         {
             StopCoroutine(enemySpawn);
         }
@@ -29,7 +29,7 @@ public class EnemyGenerator : MonoBehaviour
         {
             int random = Random.Range(0, spawnPoints.Length); //스폰할 랜덤 값
             Transform spawnPoint = spawnPoints[random];
-            Instantiate(enemyPrefab,spawnPoint.position,Quaternion.identity);
+            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
             yield return new WaitForSeconds(spawnInterval); //스폰 간격 만큼 기다리기
         }
     }

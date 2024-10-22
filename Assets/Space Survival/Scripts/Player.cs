@@ -1,58 +1,84 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     public float maxHp; //최대 체력
-    public float hp =100f; //체력
-    public float damage=5f; //공격력
-    public float moveSpeed=5f; //이동속도
+    public float hp = 100f; //체력
+    public float damage = 5f; //공격력
+    public float moveSpeed = 5f; //이동속도
 
-    private Vector2 dir;
-
-    public static int enemyKills = 0;
+    public int enemyKills = 0;
 
     public TextMeshProUGUI enemyKillsUI;
-    public GameObject fireIndicator;
-    public static bool dead { get; private set; } //플레이어 죽음 여부
+    public bool dead { get; private set; } //플레이어 죽음 여부
 
     public Projectile projectilePrefab; //투사체 프리팹
     public Slider playerHpBar; //플레이어 hpBar
     public float hpValue { get { return hp / maxHp; } }
 
     public GameObject GameOverUI;
+
+    private Transform moveDir;
+    private Transform fireDir;
+
+    public Enemy targetEnemy = null;
+    public float targetDistnace = float.MaxValue;
+
+    private void Awake()
+    {
+        moveDir = transform.Find("MoveDir");
+        fireDir = transform.Find("FireDir");
+    }
+
     void Start()
     {
         maxHp = hp;
+        GameManager.Instance.player = this;
     }
     void Update()
     {
         float x = Input.GetAxis("Horizontal");
         float y = Input.GetAxis("Vertical");
 
-        dir = new Vector2(x, y);
+        Vector2 moveDir = new Vector2(x, y);
 
         //체력UI
         playerHpBar.value = hpValue;
         //적킬UI
         enemyKillsUI.text = $"Kills : {enemyKills.ToString()}";
-        //발사인디케이터
-        Vector2 mousePos = Input.mousePosition;
-        Vector2 mouseScreenPos = Camera.main.ScreenToWorldPoint(mousePos);
-        Vector2 fireDir = mouseScreenPos - (Vector2)transform.position;
-        fireIndicator.transform.up = fireDir;
+
+        //가장 가까운 적을 탐색하여 사격 방향을 정할 때
+        //Enemy targetEnemy = null;
+        //float targetDistnace = float.MaxValue;
+        foreach (Enemy enemy in GameManager.Instance.enemies)
+        {
+            float distance = Vector3.Distance(enemy.transform.position, transform.position);
+            if (distance < targetDistnace) //이전에 비교한 적보다 가까우면
+            {
+                targetEnemy = enemy;
+                targetDistnace = distance;
+            }
+        }
+        Vector2 fireDir = Vector2.zero;
+        if (targetEnemy != null)
+        {
+            fireDir = targetEnemy.transform.position - transform.position;
+        }
+
+        Move(moveDir);
+        this.moveDir.up = moveDir;
+        this.fireDir.up = fireDir;
 
         if (Input.GetButtonDown("Fire1"))
         {
+
             Fire(fireDir);
         }
-    }
-    private void FixedUpdate()
-    {
-        Move(dir.normalized);
     }
     /// <summary>
     ///Transform을 통해 게임 오브젝트를 움직이는 메서드.
@@ -71,7 +97,7 @@ public class Player : MonoBehaviour
         Projectile projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
         projectile.transform.up = dir;
         projectile.damage = damage;
-        
+
     }
     public void TakeDamage(float damage)
     {
@@ -85,11 +111,16 @@ public class Player : MonoBehaviour
             gameObject.SetActive(false);
         }
     }
-    private void OnTriggerEnter2D(Collider2D other)
+
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (other.TryGetComponent<Enemy>(out Enemy enemy))
+        if (collision.CompareTag("Item"))
         {
-            TakeDamage(enemy.damage);
+            IItem item = collision.GetComponent<IItem>();
+            if (item != null)
+            {
+                item.Use();
+            }
         }
     }
 }
