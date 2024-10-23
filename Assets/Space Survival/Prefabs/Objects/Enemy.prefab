@@ -126,7 +126,10 @@ MonoBehaviour:
   hp: 10
   damage: 10
   moveSpeed: 3
+  attackInterval: 0.5
+  lastAttackTime: 0
   hpBar: {fileID: 8256938657949783156}
+  impaceParticle: {fileID: 3438131316322386034, guid: 4dd2da919c70e934ab1fb5c2d27612b7, type: 3}
 --- !u!58 &3068168219761727783
 CircleCollider2D:
   m_ObjectHideFlags: 0

@@ -20,6 +20,13 @@ public class Enemy : MonoBehaviour
 	private Transform target; //추적할 대상
 
 	public Image hpBar;
+	private Rigidbody2D rb;
+	public ParticleSystem impaceParticle;
+
+	private void Awake()
+	{
+		rb = GetComponent<Rigidbody2D>();
+	}
 	void Start()
 	{
 		GameManager.Instance.enemies.Add(this);//적 리스트에 자기 자신을 Add
@@ -38,7 +45,8 @@ public class Enemy : MonoBehaviour
 
 	private void Move(Vector2 dir) //dir 값이 커져도 1로 고정을 하고 싶은 경우.
 	{
-		transform.Translate(dir * moveSpeed * Time.deltaTime);
+		//transform.Translate(dir * moveSpeed * Time.deltaTime);
+		rb.MovePosition(rb.position + (dir * moveSpeed * Time.fixedDeltaTime));
 	}
 	//OnHit, TakeDamage 보통 이렇게 씀(메서드 네임)
 	public void TakeDamage(float damage)
@@ -64,6 +72,9 @@ public class Enemy : MonoBehaviour
 			if (other.CompareTag("Player"))
 			{
 				GameManager.Instance.player.TakeDamage(damage);
+				var particle = Instantiate(impaceParticle, other.transform.position, Quaternion.identity);
+				particle.Play();
+				Destroy(particle.gameObject, 2f);
 			}
 		}
 	}
