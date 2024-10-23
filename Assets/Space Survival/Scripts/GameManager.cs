@@ -27,4 +27,14 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
     private GameManager() { }
+
+    public void RemoveAllEnemies()
+    {
+        List<Enemy> removeTargets = new List<Enemy>(enemies); //enemies 리스트를 복사
+
+        foreach (Enemy removeTarget in removeTargets)
+        {
+            removeTarget.Die();
+        }
+    }
 }

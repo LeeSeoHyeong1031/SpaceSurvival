@@ -7,128 +7,139 @@ using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
-	public float maxHp; //최대 체력
-	public float hp = 100f;
+    public float maxHp; //최대 체력
+    public float hp = 100f;
+    public float damage = 5f; //공격력
+    public float moveSpeed = 5f; //이동속도
+    public int enemyKills = 0;
+    public float fireInterval = 1f; //공격간격
 
-	public float damage = 5f; //공격력
-	public float moveSpeed = 5f; //이동속도
+    public bool dead { get; private set; } //플레이어 죽음 여부
 
-	public int enemyKills = 0;
+    public Projectile projectilePrefab; //투사체 프리팹
 
-	public bool dead { get; private set; } //플레이어 죽음 여부
+    [Header("PlayerInfo 관련 변수")]
+    public Slider playerHpBar; //플레이어 hpBar
+    public TextMeshProUGUI enemyKillsUI;
+    public TextMeshProUGUI hpText;
 
-	public Projectile projectilePrefab; //투사체 프리팹
+    public float hpValue { get { return hp / maxHp; } }
 
-	[Header("PlayerInfo 관련 변수")]
-	public Slider playerHpBar; //플레이어 hpBar
-	public TextMeshProUGUI enemyKillsUI;
-	public TextMeshProUGUI hpText;
+    public GameObject GameOverUI;
 
-	public float hpValue { get { return hp / maxHp; } }
+    private Transform moveDir;
+    private Transform fireDir;
 
-	public GameObject GameOverUI;
+    private void Awake()
+    {
+        moveDir = transform.Find("MoveDir");
+        fireDir = transform.Find("FireDir");
+        maxHp = hp;
+        dead = false;
+    }
 
-	private Transform moveDir;
-	private Transform fireDir;
+    void Start()
+    {
+        GameManager.Instance.player = this;
+        _ = StartCoroutine(FireCoroutine());
+    }
+    void Update()
+    {
+        float x = Input.GetAxis("Horizontal");
+        float y = Input.GetAxis("Vertical");
 
-	public Enemy targetEnemy = null;
-	public float targetDistnace = float.MaxValue;
+        Vector2 moveDir = new Vector2(x, y);
 
-	private void Awake()
-	{
-		moveDir = transform.Find("MoveDir");
-		fireDir = transform.Find("FireDir");
-		maxHp = hp;
-		dead = false;
-	}
+        //체력UI
+        playerHpBar.value = hpValue;
+        hpText.text = $"{hp} / {maxHp}";
+        //적킬UI
+        enemyKillsUI.text = $"Kills : {enemyKills.ToString()}";
 
-	void Start()
-	{
-		GameManager.Instance.player = this;
-	}
-	void Update()
-	{
-		float x = Input.GetAxis("Horizontal");
-		float y = Input.GetAxis("Vertical");
 
-		Vector2 moveDir = new Vector2(x, y);
+        Enemy targetEnemy = null;
+        float targetDistnace = float.MaxValue;
 
-		//체력UI
-		playerHpBar.value = hpValue;
-		hpText.text = $"{hp} / {maxHp}";
-		//적킬UI
-		enemyKillsUI.text = $"Kills : {enemyKills.ToString()}";
+        foreach (Enemy enemy in GameManager.Instance.enemies)
+        {
+            float distance = Vector3.Distance(enemy.transform.position, transform.position);
+            if (distance < targetDistnace) //이전에 비교한 적보다 가까우면
+            {
+                targetEnemy = enemy;
+                targetDistnace = distance;
+            }
+        }
 
-		//가장 가까운 적을 탐색하여 사격 방향을 정할 때
-		//Enemy targetEnemy = null;
-		//float targetDistnace = float.MaxValue;
-		foreach (Enemy enemy in GameManager.Instance.enemies)
-		{
-			float distance = Vector3.Distance(enemy.transform.position, transform.position);
-			if (distance < targetDistnace) //이전에 비교한 적보다 가까우면
-			{
-				targetEnemy = enemy;
-				targetDistnace = distance;
-			}
-		}
-		Vector2 fireDir = Vector2.zero;
-		if (targetEnemy != null)
-		{
-			fireDir = targetEnemy.transform.position - transform.position;
-		}
+        Vector2 fireDir = Vector2.zero;
+        if (targetEnemy != null)
+        {
+            fireDir = targetEnemy.transform.position - transform.position;
+        }
 
-		Move(moveDir);
-		this.moveDir.up = moveDir;
-		this.fireDir.up = fireDir;
+        Move(moveDir);
+        this.moveDir.up = moveDir;
+        this.fireDir.up = fireDir;
+    }
+    /// <summary>
+    ///Transform을 통해 게임 오브젝트를 움직이는 메서드.
+    /// </summary>
+    /// <param name="dir">이동 방향</param>
+    public void Move(Vector2 dir)
+    {
+        transform.Translate(dir * moveSpeed * Time.deltaTime);
+    }
 
-		if (Input.GetButtonDown("Fire1"))
-		{
+    private IEnumerator FireCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(fireInterval);
+            Fire();
+        }
+    }
 
-			Fire(fireDir);
-		}
-	}
-	/// <summary>
-	///Transform을 통해 게임 오브젝트를 움직이는 메서드.
-	/// </summary>
-	/// <param name="dir">이동 방향</param>
-	public void Move(Vector2 dir)
-	{
-		transform.Translate(dir * moveSpeed * Time.deltaTime);
-	}
-	/// <summary>
-	/// 투사체를 발사.
-	/// </summary>
-	public void Fire(Vector2 dir)
-	{
-		//Projectile projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-		Projectile projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
-		projectile.transform.up = dir;
-		projectile.damage = damage;
+    /// <summary>
+    /// 투사체를 발사.
+    /// </summary>
+    public void Fire()
+    {
+        Projectile projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+        projectile.transform.up = fireDir.up;
+        projectile.damage = damage;
 
-	}
-	public void TakeDamage(float damage)
-	{
-		hp -= damage;
-		if (hp <= 0) //으앙 쥬금
-		{
-			hp = 0;
-			dead = true;
-			playerHpBar.value = 0f;
-			GameOverUI.SetActive(true);
-			gameObject.SetActive(false);
-		}
-	}
+    }
+    public void TakeDamage(float damage)
+    {
+        hp -= damage;
+        if (hp <= 0)
+        {
+            hp = 0;
+            dead = true;
+            playerHpBar.value = 0f;
+            GameOverUI.SetActive(true);
+            gameObject.SetActive(false);
+        }
+    }
 
-	//아이템 관련 함수
-	private void OnTriggerEnter2D(Collider2D collision)
-	{
-		if (collision.CompareTag("Item"))
-		{
-			IItem item = collision.GetComponent<IItem>();
-			if (item != null)
-			{
-				item.Use();
-			}
-		}
-	}
+    //아이템 관련 함수
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Item"))
+        {
+            IItem item = collision.GetComponent<IItem>();
+            if (item != null)
+            {
+                item.Use();
+            }
+        }
+    }
+
+    public void TakeHeal(float heal)
+    {
+        hp += heal;
+        if (hp > maxHp)
+        {
+            hp = maxHp;
+        }
+    }
 }

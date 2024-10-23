@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class HealthPack : MonoBehaviour, IItem
 {
-	public void Use()
-	{
-		//체력회복 +50 하고 싶음.
-		GameManager.Instance.player.maxHp += 50;
-		GameManager.Instance.player.hp += 50;
-		Destroy(gameObject);
-	}
+    public float healAmount = 0f;
+    public void Use()
+    {
+        //체력회복 +50 하고 싶음.
+        print("회복약 습득함.");
+        GameManager.Instance.player.TakeHeal(healAmount);
+        Destroy(gameObject);
+    }
 }
