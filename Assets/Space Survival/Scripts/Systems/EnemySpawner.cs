@@ -5,10 +5,8 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     public Transform[] spawnPoints = null; //스폰할 위치의 Transform컴포넌트 배열
-    public GameObject enemyPrefab; //적 프리팹
-    [SerializeField]
-    private float spawnInterval = 1f; //스폰 간격
-    Coroutine enemySpawn; //적소환 코루틴을 담을 객체
+    public float spawnInterval = 1f; //스폰 간격
+    Coroutine enemySpawn; //적 스폰 코루틴을 담을 변수
 
     private void Start()
     {
@@ -29,7 +27,10 @@ public class EnemySpawner : MonoBehaviour
         {
             int random = Random.Range(0, spawnPoints.Length); //스폰할 랜덤 값
             Transform spawnPoint = spawnPoints[random];
-            Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+            //Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+            GameObject enemy = PoolManager.Instance.ActivateObj(0);
+            enemy.transform.position = spawnPoint.position;
+            enemy.transform.eulerAngles = spawnPoint.eulerAngles;
             yield return new WaitForSeconds(spawnInterval); //스폰 간격 만큼 기다리기
         }
     }
