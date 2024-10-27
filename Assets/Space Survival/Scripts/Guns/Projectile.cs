@@ -10,9 +10,9 @@ public class Projectile : MonoBehaviour
 	public float duration = 3; //지속시간
 
 	public ParticleSystem impactParticle;
-	void Start()
+	void OnEnable()
 	{
-		Destroy(gameObject, duration); //3초 후에 오브젝트 제거.
+		PoolManager.Instance.Push(this, duration);
 	}
 	void Update()
 	{
@@ -26,13 +26,14 @@ public class Projectile : MonoBehaviour
 
 	private void OnTriggerEnter2D(Collider2D other)
 	{
-		if (other.TryGetComponent<Enemy>(out Enemy enemy))
+		if (other.CompareTag("Enemy"))
 		{
-			enemy.TakeDamage(damage);
+			other.GetComponent<Enemy>().TakeDamage(damage);
 			var particle = Instantiate(impactParticle, other.transform.position, Quaternion.identity);
 			particle.Play();
 			Destroy(particle.gameObject, 2f);
-			Destroy(gameObject);
+
+			PoolManager.Instance.projectilePool.Push(this);
 		}
 	}
 }

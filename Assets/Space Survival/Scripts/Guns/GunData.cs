@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Scriptable/GunData", fileName = "Gun Data")]
-public class Gun : ScriptableObject
+public class GunData : ScriptableObject
 {
 	public float damage; // 공격력
 	public float moveSpeed; //이동속도

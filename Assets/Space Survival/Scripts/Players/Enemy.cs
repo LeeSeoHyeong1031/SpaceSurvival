@@ -14,6 +14,8 @@ public class Enemy : MonoBehaviour
 	public float attackInterval = 0.5f; //공격 간격
 	public float lastAttackTime = 0f; //마지막 공격 시간
 
+	public float exp = 50;
+
 	//초고수
 	public float hpAmount { get { return hp / maxHp; } } //자주 계산되는 항목은 프로퍼티로 만들기
 
@@ -32,8 +34,8 @@ public class Enemy : MonoBehaviour
 	void OnEnable()
 	{
 		GameManager.Instance.enemies.Add(this);//적 리스트에 자기 자신을 Add
-		cd.enabled = true;
-		hp = 10f;
+		cd.enabled = true; //콜라이더 켜기
+		hp = 10f; //체력 설정
 		maxHp = hp;
 	}
 	private void Start()
@@ -65,8 +67,9 @@ public class Enemy : MonoBehaviour
 	}
 	public void Die()
 	{
+		GameManager.Instance.GainExp(exp); //플레이어 경험치 흭득
 		GameManager.Instance.enemies.Remove(this); //적관리 리스트에서 제거
-		GameManager.Instance.player.enemyKills++; //킬누적
+		UIManager.Instance.UpdateEnemiesKillsUI(); //적 킬 UI 업뎃 && 킬 누적
 		cd.enabled = false;
 		PoolManager.Instance.enemyPool.Push(this);
 	}
