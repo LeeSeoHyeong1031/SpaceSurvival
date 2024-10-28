@@ -47,11 +47,13 @@ public class UIManager : SingletonManager<UIManager>
 	{
 		levelText.text = GameManager.Instance.player.level.ToString();
 		levelUpUI.gameObject.SetActive(true);
+		levelUpUI.GetComponent<RandomSelect>().enabled = true;
 	}
 
 	public void HideLevelUpUI()
 	{
 		GameManager.Instance.Resume();
+		levelUpUI.GetComponent<RandomSelect>().enabled = false;
 		levelUpUI.gameObject.SetActive(false);
 	}
 }

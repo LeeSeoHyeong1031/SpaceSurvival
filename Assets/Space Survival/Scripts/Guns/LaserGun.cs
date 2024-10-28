@@ -7,6 +7,12 @@ public class LaserGun : Gun
 {
 	public Transform target;
 
+	public override void Start()
+	{
+		base.Start();
+		fireInterval = gunData.fireInterval[0];
+	}
+
 	public override void Fire()
 	{
 		target = GameManager.Instance.player.targetEnemy;
@@ -15,7 +21,7 @@ public class LaserGun : Gun
 		Projectile proj = PoolManager.Instance.projectilePool.Pop();
 		proj.transform.position = transform.position;
 		proj.transform.up = target.position - transform.position;
-		proj.damage = gunData.damage;
+		proj.damage = gunData.damage[level];
 		proj.moveSpeed = gunData.moveSpeed;
 	}
 }

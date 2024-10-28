@@ -5,8 +5,10 @@ using UnityEngine;
 public class Gun : MonoBehaviour
 {
 	public GunData gunData;
+	public float fireInterval;
+	public int level = 0;
 
-	private void Start()
+	public virtual void Start()
 	{
 		StartCoroutine(FireCoroutine());
 	}
@@ -14,7 +16,7 @@ public class Gun : MonoBehaviour
 	{
 		while (true)
 		{
-			yield return new WaitForSeconds(gunData.fireInterval);
+			yield return new WaitForSeconds(fireInterval);
 			Fire();
 		}
 	}

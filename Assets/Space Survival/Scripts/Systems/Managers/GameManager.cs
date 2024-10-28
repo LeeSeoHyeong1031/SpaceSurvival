@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 //게임 전체 진행을 총괄하는 오브젝트.
 public class GameManager : SingletonManager<GameManager>
@@ -51,4 +52,9 @@ public class GameManager : SingletonManager<GameManager>
 	{
 		Time.timeScale = 0f;
 	}
+
+	//public void GameStart()
+	//{
+	//	SceneManager.LoadScene("GameScene");
+	//}
 }
